@@ -1,5 +1,13 @@
-// Réglages — storage persistence, JSON backup export/import. (Git-push backup later.)
+// Réglages — storage persistence, JSON export/import, and GitHub auto-backup.
 import { exportJSON, importJSON, getFlights } from '../state.js';
+import * as gh from '../github.js';
+
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function fmtWhen(ts) {
+	if (!ts) return 'jamais';
+	return new Date(ts).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+}
 
 export function render() {
 	const count = getFlights().length;
@@ -35,11 +43,8 @@ export function render() {
 			<p class="view__subtitle" id="backup-msg" style="margin-top:12px">${count} vol${count > 1 ? 's' : ''} enregistré${count > 1 ? 's' : ''}.</p>
 		</div>
 
-		<p class="section-label">Données</p>
-		<div class="card">
-			<button class="btn btn--block" type="button" disabled>Importer « carnet de vol.xlsx »</button>
-			<p class="view__subtitle" style="margin-top:12px">Migration des 689 vols — à venir.</p>
-		</div>
+		<p class="section-label">Sauvegarde GitHub (automatique)</p>
+		${githubCardHTML()}
 
 		<p class="section-label">À propos</p>
 		<div class="card">
@@ -49,9 +54,109 @@ export function render() {
 	</section>`;
 }
 
+function githubCardHTML() {
+	const c = gh.getConfig();
+	const configured = gh.isConfigured();
+	return `
+	<div class="card field" style="gap:12px">
+		<div class="field">
+			<label for="gh-owner">Propriétaire (owner)</label>
+			<input id="gh-owner" placeholder="k7xzpk9a-png" value="${esc(c.owner || '')}" autocapitalize="off" autocorrect="off" />
+		</div>
+		<div class="field">
+			<label for="gh-repo">Dépôt privé (repo)</label>
+			<input id="gh-repo" placeholder="flightlog-data" value="${esc(c.repo || '')}" autocapitalize="off" autocorrect="off" />
+		</div>
+		<div class="field">
+			<label for="gh-path">Fichier</label>
+			<input id="gh-path" placeholder="carnet.json" value="${esc(c.path || 'carnet.json')}" autocapitalize="off" autocorrect="off" />
+		</div>
+		<div class="field">
+			<label for="gh-token">Token (PAT fine-grained, Contents: read/write)</label>
+			<input id="gh-token" type="password" placeholder="${configured ? '•••••• (enregistré)' : 'github_pat_…'}" autocapitalize="off" autocorrect="off" />
+		</div>
+		<div class="btn-row">
+			<button class="btn" id="gh-save" type="button">Enregistrer</button>
+			<button class="btn" id="gh-test" type="button">Tester</button>
+		</div>
+		<div class="btn-row">
+			<button class="btn btn--primary" id="gh-push" type="button" ${configured ? '' : 'disabled'}>Sauvegarder maintenant</button>
+			<button class="btn" id="gh-pull" type="button" ${configured ? '' : 'disabled'}>Restaurer</button>
+		</div>
+		<p class="view__subtitle" id="gh-msg">${configured ? 'Dernière sauvegarde : ' + esc(fmtWhen(c.lastBackup)) : 'Non configuré. La sauvegarde se lance automatiquement après chaque modification une fois configurée.'}</p>
+	</div>`;
+}
+
 export function mount(root) {
 	wirePersistence(root);
 	wireBackup(root);
+	wireGithub(root);
+}
+
+function wireGithub(root) {
+	const msg = root.querySelector('#gh-msg');
+	const say = (t) => { if (msg) msg.textContent = t; };
+	const read = () => ({
+		owner: root.querySelector('#gh-owner').value.trim(),
+		repo: root.querySelector('#gh-repo').value.trim(),
+		path: root.querySelector('#gh-path').value.trim() || 'carnet.json'
+	});
+
+	function saveConfig() {
+		const cur = gh.getConfig();
+		const next = { ...cur, ...read() };
+		const tok = root.querySelector('#gh-token').value.trim();
+		if (tok) next.token = tok; // keep existing token if field left blank
+		gh.setConfig(next);
+		return next;
+	}
+
+	root.querySelector('#gh-save')?.addEventListener('click', () => {
+		saveConfig();
+		root.querySelector('#gh-token').value = '';
+		say('Configuration enregistrée.');
+		// Re-enable push/pull without a full re-render.
+		for (const id of ['#gh-push', '#gh-pull']) {
+			const b = root.querySelector(id);
+			if (b) b.disabled = !gh.isConfigured();
+		}
+	});
+
+	root.querySelector('#gh-test')?.addEventListener('click', async () => {
+		saveConfig();
+		say('Test en cours…');
+		try {
+			const info = await gh.test();
+			say(`OK : ${info.full_name}${info.private ? ' (privé ✓)' : ' (⚠ public !)'}`);
+		} catch (err) {
+			say('Échec : ' + err.message);
+		}
+	});
+
+	root.querySelector('#gh-push')?.addEventListener('click', async () => {
+		saveConfig();
+		say('Sauvegarde…');
+		try {
+			await gh.push(exportJSON());
+			say('Sauvegardé : ' + fmtWhen(gh.getConfig().lastBackup));
+		} catch (err) {
+			say('Échec : ' + err.message);
+		}
+	});
+
+	root.querySelector('#gh-pull')?.addEventListener('click', async () => {
+		saveConfig();
+		if (!confirm('Restaurer remplacera le carnet local par la sauvegarde GitHub. Continuer ?')) return;
+		say('Restauration…');
+		try {
+			const text = await gh.pull();
+			if (text == null) return say('Aucune sauvegarde trouvée sur GitHub.');
+			const n = await importJSON(text);
+			say(`Restauré : ${n} vol(s).`);
+		} catch (err) {
+			say('Échec : ' + err.message);
+		}
+	});
 }
 
 function wirePersistence(root) {

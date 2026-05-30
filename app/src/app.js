@@ -1,7 +1,8 @@
 // Entry point: loads state, wires the router, tab bar, FAB, and service worker.
 import { startRouter } from './router.js';
 import { renderTabbar, setActiveTab } from './ui/nav.js';
-import { initState, subscribe } from './state.js';
+import { initState, subscribe, exportJSON } from './state.js';
+import { scheduleBackup } from './github.js';
 import * as dashboard from './views/dashboard.js';
 import * as logbook from './views/logbook.js';
 import * as addFlight from './views/add-flight.js';
@@ -52,8 +53,12 @@ async function main() {
 		}
 	});
 
-	// Re-render the current view whenever the logbook changes.
-	subscribe(() => router.rerender());
+	// Re-render the current view whenever the logbook changes, and queue a
+	// debounced GitHub backup (no-op unless the user has configured it).
+	subscribe(() => {
+		router.rerender();
+		scheduleBackup(exportJSON);
+	});
 }
 
 main();
