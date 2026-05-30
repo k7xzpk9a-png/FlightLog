@@ -1,0 +1,397 @@
+/* Carnet de vol — phone-first dark theme. Plain CSS, no preprocessor. */
+
+:root {
+	--bg: #0f172a; /* slate-900 */
+	--surface: #1e293b; /* slate-800 */
+	--surface-2: #334155; /* slate-700 */
+	--border: #334155;
+	--text: #e2e8f0; /* slate-200 */
+	--muted: #94a3b8; /* slate-400 */
+	--accent: #38bdf8; /* sky-400 */
+	--accent-ink: #082f49; /* sky-950 */
+	--good: #34d399; /* emerald-400 */
+	--warn: #fbbf24; /* amber-400 */
+	--bad: #f87171; /* red-400 */
+
+	--tabbar-h: 60px;
+	--safe-top: env(safe-area-inset-top, 0px);
+	--safe-bottom: env(safe-area-inset-bottom, 0px);
+
+	--radius: 14px;
+	--gap: 12px;
+	color-scheme: dark;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+}
+
+body {
+	background: var(--bg);
+	color: var(--text);
+	font-family:
+		-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+		'Apple Color Emoji', 'Segoe UI Emoji';
+	-webkit-font-smoothing: antialiased;
+	overscroll-behavior-y: none;
+}
+
+/* ---- App scroll region (sits above the fixed tab bar) ---- */
+.app {
+	min-height: 100dvh;
+	padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 8px);
+}
+
+/* Sub-pages (e.g. the add form) take the full screen: hide the tab bar. */
+body.is-subpage .tabbar {
+	display: none;
+}
+body.is-subpage .app {
+	padding-bottom: calc(var(--safe-bottom) + 8px);
+}
+
+.view {
+	padding: calc(var(--safe-top) + 16px) 16px 16px;
+	max-width: 640px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+}
+
+/* ---- Headers ---- */
+.view__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+}
+.view__title {
+	font-size: 1.6rem;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	margin: 0;
+}
+.view__subtitle {
+	color: var(--muted);
+	font-size: 0.9rem;
+	margin: 2px 0 0;
+}
+.section-label {
+	color: var(--muted);
+	font-size: 0.78rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin: 8px 2px 0;
+}
+
+/* ---- Cards ---- */
+.card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 16px;
+}
+.card--tap {
+	cursor: pointer;
+	transition: background 0.15s;
+}
+.card--tap:active {
+	background: var(--surface-2);
+}
+
+.empty {
+	color: var(--muted);
+	text-align: center;
+	padding: 28px 12px;
+}
+.empty__icon {
+	font-size: 1.8rem;
+	opacity: 0.6;
+}
+
+/* ---- Stat grid ---- */
+.stat-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--gap);
+}
+.stat {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 14px;
+}
+.stat__value {
+	font-size: 1.5rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+.stat__label {
+	color: var(--muted);
+	font-size: 0.8rem;
+	margin-top: 2px;
+}
+
+/* ---- Currency / échéance chips ---- */
+.chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	padding: 6px 12px;
+	font-size: 0.85rem;
+}
+.dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+	background: var(--muted);
+}
+.dot--good {
+	background: var(--good);
+}
+.dot--warn {
+	background: var(--warn);
+}
+.dot--bad {
+	background: var(--bad);
+}
+
+/* ---- Segmented control ---- */
+.segmented {
+	display: flex;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	padding: 4px;
+	gap: 4px;
+}
+.segmented button {
+	flex: 1;
+	border: 0;
+	background: transparent;
+	color: var(--muted);
+	padding: 8px 4px;
+	border-radius: 999px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+.segmented button[aria-selected='true'] {
+	background: var(--accent);
+	color: var(--accent-ink);
+}
+
+/* ---- Mini bar chart (Bilans trend) ---- */
+.bars {
+	display: flex;
+	align-items: flex-end;
+	gap: 4px;
+	height: 96px;
+	padding: 8px 4px 0;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+.bar {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	height: 100%;
+	gap: 4px;
+}
+.bar__fill {
+	width: 100%;
+	min-height: 2px;
+	background: var(--accent);
+	border-radius: 3px 3px 0 0;
+}
+.bar__lbl {
+	font-size: 0.6rem;
+	color: var(--muted);
+}
+
+/* ---- Horizontal meter (per-machine) ---- */
+.meter {
+	height: 6px;
+	background: var(--surface-2);
+	border-radius: 999px;
+	overflow: hidden;
+}
+.meter__fill {
+	height: 100%;
+	background: var(--accent);
+	border-radius: 999px;
+}
+
+/* ---- Buttons ---- */
+.btn {
+	appearance: none;
+	border: 1px solid var(--border);
+	background: var(--surface);
+	color: var(--text);
+	border-radius: 12px;
+	padding: 12px 16px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+.btn--primary {
+	background: var(--accent);
+	color: var(--accent-ink);
+	border-color: transparent;
+}
+.btn--block {
+	width: 100%;
+}
+.btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+.btn-row {
+	display: flex;
+	gap: var(--gap);
+}
+.btn-row > * {
+	flex: 1;
+}
+
+/* ---- Form ---- */
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.field > label {
+	font-size: 0.85rem;
+	color: var(--muted);
+	font-weight: 600;
+}
+.field input,
+.field select,
+.field textarea {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	color: var(--text);
+	padding: 12px;
+	font-size: 1rem;
+	font-family: inherit;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+	outline: 2px solid var(--accent);
+	outline-offset: -1px;
+}
+.field-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--gap);
+}
+
+/* ---- Top bar (sub-pages like Add) ---- */
+.topbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: calc(var(--safe-top) + 10px) 8px 10px;
+	position: sticky;
+	top: 0;
+	background: color-mix(in srgb, var(--bg) 88%, transparent);
+	backdrop-filter: blur(8px);
+	z-index: 5;
+}
+.iconbtn {
+	border: 0;
+	background: transparent;
+	color: var(--text);
+	font-size: 1.4rem;
+	padding: 6px 10px;
+	cursor: pointer;
+	border-radius: 10px;
+	text-decoration: none;
+}
+.topbar__title {
+	font-size: 1.1rem;
+	font-weight: 700;
+}
+.topbar__spacer {
+	flex: 1;
+}
+
+/* ---- Bottom tab bar ---- */
+.tabbar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: calc(var(--tabbar-h) + var(--safe-bottom));
+	padding-bottom: var(--safe-bottom);
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	background: color-mix(in srgb, var(--surface) 92%, transparent);
+	backdrop-filter: blur(12px);
+	border-top: 1px solid var(--border);
+	z-index: 10;
+}
+.tab {
+	border: 0;
+	background: transparent;
+	color: var(--muted);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	font-size: 0.68rem;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: none;
+}
+.tab__icon {
+	font-size: 1.25rem;
+	line-height: 1;
+}
+.tab[aria-current='page'] {
+	color: var(--accent);
+}
+
+/* ---- Floating add button ---- */
+.fab {
+	position: fixed;
+	right: 16px;
+	bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 16px);
+	width: 56px;
+	height: 56px;
+	border-radius: 999px;
+	border: 0;
+	background: var(--accent);
+	color: var(--accent-ink);
+	font-size: 1.8rem;
+	font-weight: 700;
+	line-height: 1;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+	cursor: pointer;
+	z-index: 9;
+}
+.fab[hidden] {
+	display: none;
+}

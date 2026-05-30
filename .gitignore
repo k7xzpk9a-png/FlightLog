@@ -1,0 +1,9 @@
+node_modules/
+*.log
+.DS_Store
+CLAUDE.local.md
+
+# Personal flight data — never commit (no shell quoting in gitignore!)
+carnet-*.json
+*.xlsx
+carnet de vol.xlsx

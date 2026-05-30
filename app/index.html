@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, viewport-fit=cover"
+		/>
+		<title>Carnet de vol</title>
+		<meta name="description" content="Carnet de vol ALAT — hors-ligne." />
+
+		<!-- PWA -->
+		<link rel="manifest" href="./manifest.webmanifest" />
+		<meta name="theme-color" content="#0f172a" />
+
+		<!-- iOS standalone -->
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="apple-mobile-web-app-title" content="Carnet" />
+		<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+		<link rel="icon" href="./assets/icons/icon-192.png" />
+
+		<link rel="stylesheet" href="./styles.css" />
+	</head>
+	<body>
+		<div id="app" class="app"><!-- views render here --></div>
+
+		<nav id="tabbar" class="tabbar" aria-label="Navigation principale"></nav>
+
+		<script type="module" src="./src/app.js"></script>
+	</body>
+</html>
