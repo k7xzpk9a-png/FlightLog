@@ -1,5 +1,5 @@
 // Bilans — totals, monthly trend, and per-machine breakdown, all from stored data.
-import { getFlights } from '../state.js';
+import { getVisibleFlights, getPilotOnly, setPilotOnly } from '../state.js';
 import {
 	computeTotals,
 	computeByMachine,
@@ -76,11 +76,12 @@ function byMachineHTML(flights) {
 }
 
 function bodyHTML() {
-	const flights = filterByPeriod(getFlights(), period);
+	const visible = getVisibleFlights();
+	const flights = filterByPeriod(visible, period);
 	return `
 		<div class="stat-grid">${statsHTML(flights)}</div>
 		<p class="section-label">Activité (12 derniers mois)</p>
-		${trendHTML(getFlights())}
+		${trendHTML(visible)}
 		<p class="section-label">Par machine</p>
 		${byMachineHTML(flights)}`;
 }
@@ -102,6 +103,12 @@ export function render() {
 			).join('')}
 		</div>
 
+		<div class="chips">
+			<button class="chip" id="recap-pilot-toggle" type="button" aria-pressed="${getPilotOnly()}" style="cursor:pointer">
+				<span class="dot ${getPilotOnly() ? 'dot--good' : ''}"></span>Pilote seulement
+			</button>
+		</div>
+
 		<div id="recap-body">${bodyHTML()}</div>
 	</section>`;
 }
@@ -109,6 +116,11 @@ export function render() {
 export function mount(root) {
 	const seg = root.querySelector('.segmented');
 	const body = root.querySelector('#recap-body');
+
+	// Persisted global filter; emit re-renders the whole view (period preserved).
+	root.querySelector('#recap-pilot-toggle')?.addEventListener('click', () => {
+		setPilotOnly(!getPilotOnly());
+	});
 	seg?.addEventListener('click', (e) => {
 		const btn = e.target.closest('button[data-period]');
 		if (!btn) return;

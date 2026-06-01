@@ -28,7 +28,17 @@ export const COUNT_FIELDS = [
 
 // Common machine types and crew roles (from the source `Données` lookups).
 export const MACHINES = ['EC120', 'AS555 Fennec', 'AS532 Puma', 'EC225 / H225', 'NH90', 'CH47'];
-export const ROLES = ['P1', 'P2', 'Instructeur', 'Élève', 'Passager'];
+export const ROLES = ['PIL', 'EP', 'PCE', 'APE', 'OBS', 'ME', 'VIG', 'MOS1'];
+
+// Roles flown as the operating pilot (PIL = pilote, EP = élève pilote). Every
+// other logged role (PCE, APE, OBS, ME, VIG, MOS1, …) is a passenger /
+// non-flying seat and is hidden by the "Pilote seulement" filter.
+export const PILOT_ROLES = ['PIL', 'EP'];
+
+/** True if this flight was logged in a flying (pilot) role. */
+export function isPilotFlight(f) {
+	return PILOT_ROLES.includes(String(f.role || '').trim().toUpperCase());
+}
 
 /** A blank flight with sensible defaults (today, type "vol", zeros). */
 export function newFlight() {

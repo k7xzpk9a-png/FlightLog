@@ -1,5 +1,5 @@
 // Carnet — list of flights from stored data, with search + type filter.
-import { getFlights } from '../state.js';
+import { getVisibleFlights, getPilotOnly, setPilotOnly } from '../state.js';
 import { flightTotalHours, fmtHours, fmtDate } from '../model.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -40,7 +40,7 @@ function row(f) {
 }
 
 function listHTML() {
-	const all = getFlights();
+	const all = getVisibleFlights();
 	const list = all.filter(matches).sort(byDateDesc);
 	if (list.length) return list.map(row).join('');
 	return `<div class="card"><div class="empty"><div class="empty__icon">📒</div>
@@ -49,7 +49,7 @@ function listHTML() {
 }
 
 export function render() {
-	const all = getFlights();
+	const all = getVisibleFlights();
 	return `
 	<section class="view">
 		<header class="view__head">
@@ -61,6 +61,12 @@ export function render() {
 
 		<div class="field">
 			<input id="lb-search" type="search" placeholder="Rechercher (machine, mission, date…)" value="${esc(query)}" />
+		</div>
+
+		<div class="chips">
+			<button class="chip" id="lb-pilot-toggle" type="button" aria-pressed="${getPilotOnly()}" style="cursor:pointer">
+				<span class="dot ${getPilotOnly() ? 'dot--good' : ''}"></span>Pilote seulement
+			</button>
 		</div>
 
 		<div class="chips" id="lb-filters">
@@ -89,6 +95,12 @@ export function mount(root) {
 			refresh();
 		});
 	}
+
+	// Toggling the pilot filter mutates persisted global state, which emits and
+	// triggers a full re-render of this view (no manual refresh needed).
+	root.querySelector('#lb-pilot-toggle')?.addEventListener('click', () => {
+		setPilotOnly(!getPilotOnly());
+	});
 
 	root.querySelector('#lb-filters')?.addEventListener('click', (e) => {
 		const btn = e.target.closest('[data-filter]');

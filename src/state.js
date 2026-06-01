@@ -3,6 +3,7 @@
 // observable.
 
 import { readLogbook, writeLogbook } from './db.js';
+import { isPilotFlight } from './model.js';
 
 const SCHEMA_VERSION = 1;
 
@@ -10,6 +11,39 @@ const SCHEMA_VERSION = 1;
 let logbook = { version: SCHEMA_VERSION, flights: [], updatedAt: null };
 
 const listeners = new Set();
+
+// "Pilote seulement" filter: when on (default), passenger flights are hidden
+// from lists and excluded from totals. Persisted across sessions.
+const PILOT_ONLY_KEY = 'flightlog.pilotOnly';
+let pilotOnly = loadPilotOnly();
+
+function loadPilotOnly() {
+	try {
+		const v = localStorage.getItem(PILOT_ONLY_KEY);
+		return v === null ? true : v === '1';
+	} catch {
+		return true;
+	}
+}
+
+export function getPilotOnly() {
+	return pilotOnly;
+}
+
+export function setPilotOnly(on) {
+	pilotOnly = !!on;
+	try {
+		localStorage.setItem(PILOT_ONLY_KEY, pilotOnly ? '1' : '0');
+	} catch {
+		/* storage unavailable — keep in-memory only */
+	}
+	emit();
+}
+
+/** Flights for display: full list, or pilot-only when the filter is on. */
+export function getVisibleFlights() {
+	return pilotOnly ? logbook.flights.filter(isPilotFlight) : logbook.flights;
+}
 
 export async function initState() {
 	const stored = await readLogbook();

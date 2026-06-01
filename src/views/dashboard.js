@@ -1,5 +1,5 @@
 // Accueil — last flight + career totals from stored data.
-import { getFlights } from '../state.js';
+import { getVisibleFlights } from '../state.js';
 import { computeTotals, lastFlight, flightTotalHours, fmtHours, fmtDate } from '../model.js';
 
 const CURRENCIES = ['VAV', 'IFR', 'Sil', 'CAG', 'CAM', 'Treuil'];
@@ -28,7 +28,7 @@ function lastFlightCard(f) {
 }
 
 export function render() {
-	const flights = getFlights();
+	const flights = getVisibleFlights();
 	const t = computeTotals(flights);
 	const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
