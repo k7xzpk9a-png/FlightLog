@@ -235,7 +235,7 @@ export const ECHEANCES = [
 	{ id: 'test-pu', family: 'test', kind: 'manual', label: 'PU', validityDays: 182, alertDays: 31 },
 	{ id: 'test-sil', family: 'test', kind: 'manual', label: 'SIL', validityDays: 366, alertDays: 31 },
 	{ id: 'test-vi', family: 'test', kind: 'manual', label: 'VI', validityDays: 366, alertDays: 31 },
-	{ id: 'test-ifr', family: 'test', kind: 'manual', label: 'IFR', validityDays: 366, alertDays: 31 },
+	{ id: 'test-ifr', family: 'test', kind: 'manual', label: 'IFR', validityDays: 60, alertDays: 31 },
 	// CEMPN/VUPN need a booked appointment, so they alert further ahead (4 / 2 months).
 	{ id: 'med-cempn', family: 'medical', kind: 'manual', label: 'CEMPN', validityDays: 730, alertDays: 120 },
 	{ id: 'med-vupn', family: 'medical', kind: 'manual', label: 'VUPN', validityDays: 182, alertDays: 60 }
