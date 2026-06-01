@@ -214,3 +214,64 @@ export function fmtDate(iso) {
 	const [y, m, d] = iso.split('-');
 	return `${d}/${m}/${y}`;
 }
+
+// ---- Échéances (currency / checks / medical) -------------------------------
+// Each item expires `validityDays` after a reference date; within `alertDays`
+// of expiry it turns amber. kind 'auto' → reference = date of the last logbook
+// flight with hours in `field`; kind 'manual' → a user-entered pass/exam date.
+
+export const ECHEANCE_FAMILIES = [
+	{ key: 'currency', label: 'Activité (carnet)' },
+	{ key: 'test', label: 'Tests / contrôles' },
+	{ key: 'medical', label: 'Médical / administratif' }
+];
+
+export const ECHEANCES = [
+	{ id: 'cur-jour', family: 'currency', kind: 'auto', label: 'Jour', field: 'hoursDay', validityDays: 92, alertDays: 31 },
+	{ id: 'cur-nuit', family: 'currency', kind: 'auto', label: 'Nuit', field: 'hoursNight', validityDays: 92, alertDays: 31 },
+	{ id: 'cur-sil', family: 'currency', kind: 'auto', label: 'Sil', field: 'hoursSil', validityDays: 92, alertDays: 31 },
+	{ id: 'cur-vi', family: 'currency', kind: 'auto', label: 'VI (IFR)', field: 'hoursIFR', validityDays: 92, alertDays: 31 },
+	{ id: 'test-vav', family: 'test', kind: 'manual', label: 'VAV', validityDays: 366, alertDays: 31 },
+	{ id: 'test-pu', family: 'test', kind: 'manual', label: 'PU', validityDays: 182, alertDays: 31 },
+	{ id: 'test-sil', family: 'test', kind: 'manual', label: 'SIL', validityDays: 366, alertDays: 31 },
+	{ id: 'test-vi', family: 'test', kind: 'manual', label: 'VI', validityDays: 366, alertDays: 31 },
+	{ id: 'test-ifr', family: 'test', kind: 'manual', label: 'IFR', validityDays: 366, alertDays: 31 },
+	// CEMPN/VUPN need a booked appointment, so they alert further ahead (4 / 2 months).
+	{ id: 'med-cempn', family: 'medical', kind: 'manual', label: 'CEMPN', validityDays: 730, alertDays: 120 },
+	{ id: 'med-vupn', family: 'medical', kind: 'manual', label: 'VUPN', validityDays: 182, alertDays: 60 }
+];
+
+/** ISO date of the most recent flight with hours logged in `field`, else ''. */
+export function lastFlightDateForField(flights, field) {
+	let best = '';
+	for (const f of flights) {
+		if (num(f[field]) > 0 && (f.date || '') > best) best = f.date || '';
+	}
+	return best;
+}
+
+function addDays(iso, days) {
+	const d = new Date(iso + 'T00:00:00');
+	d.setDate(d.getDate() + days);
+	return d.toISOString().slice(0, 10);
+}
+
+function daysBetween(aIso, bIso) {
+	return Math.round((new Date(bIso + 'T00:00:00') - new Date(aIso + 'T00:00:00')) / 86400000);
+}
+
+/**
+ * Status of one échéance.
+ * @param store map of manual reference dates keyed by échéance id.
+ * @returns {{refDate:string, expiry:string, daysLeft:number, status:'ok'|'alert'|'expired'|'none'}}
+ */
+export function computeEcheance(def, flights, store, today = new Date()) {
+	const refDate = def.kind === 'auto' ? lastFlightDateForField(flights, def.field) : (store?.[def.id] || '');
+	if (!refDate) return { refDate: '', expiry: '', daysLeft: NaN, status: 'none' };
+	const expiry = addDays(refDate, def.validityDays);
+	const daysLeft = daysBetween(today.toISOString().slice(0, 10), expiry);
+	let status = 'ok';
+	if (daysLeft < 0) status = 'expired';
+	else if (daysLeft <= def.alertDays) status = 'alert';
+	return { refDate, expiry, daysLeft, status };
+}

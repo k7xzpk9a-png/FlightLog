@@ -5,10 +5,10 @@
 import { readLogbook, writeLogbook } from './db.js';
 import { isPilotFlight } from './model.js';
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
-/** @type {{version:number, flights:any[], updatedAt:number|null}} */
-let logbook = { version: SCHEMA_VERSION, flights: [], updatedAt: null };
+/** @type {{version:number, flights:any[], echeances:Object, updatedAt:number|null}} */
+let logbook = { version: SCHEMA_VERSION, flights: [], echeances: {}, updatedAt: null };
 
 const listeners = new Set();
 
@@ -48,6 +48,7 @@ export function getVisibleFlights() {
 export async function initState() {
 	const stored = await readLogbook();
 	if (stored && Array.isArray(stored.flights)) logbook = stored;
+	if (!logbook.echeances) logbook.echeances = {};
 }
 
 export function getLogbook() {
@@ -55,6 +56,19 @@ export function getLogbook() {
 }
 export function getFlights() {
 	return logbook.flights;
+}
+
+/** Manual échéance reference dates, keyed by échéance id. */
+export function getEcheances() {
+	return logbook.echeances || {};
+}
+
+/** Set (or clear, when date is empty) a manual échéance reference date. */
+export async function setEcheanceDate(id, date) {
+	if (!logbook.echeances) logbook.echeances = {};
+	if (date) logbook.echeances[id] = date;
+	else delete logbook.echeances[id];
+	await persist();
 }
 
 export function subscribe(fn) {
@@ -104,7 +118,12 @@ export function exportJSON() {
 export async function importJSON(text) {
 	const parsed = JSON.parse(text);
 	if (!parsed || !Array.isArray(parsed.flights)) throw new Error('Format invalide : "flights" manquant.');
-	logbook = { version: parsed.version || SCHEMA_VERSION, flights: parsed.flights, updatedAt: Date.now() };
+	logbook = {
+		version: parsed.version || SCHEMA_VERSION,
+		flights: parsed.flights,
+		echeances: parsed.echeances || {},
+		updatedAt: Date.now()
+	};
 	await writeLogbook(logbook);
 	emit();
 	return logbook.flights.length;

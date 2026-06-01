@@ -2,9 +2,7 @@
 import { getVisibleFlights } from '../state.js';
 import { computeTotals, lastFlight, flightTotalHours, fmtHours, fmtDate } from '../model.js';
 
-const CURRENCIES = ['VAV', 'IFR', 'Sil', 'Treuil'];
-
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc =(s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function lastFlightCard(f) {
 	if (!f) {
@@ -43,11 +41,6 @@ export function render() {
 
 		<p class="section-label">Dernier vol</p>
 		${lastFlightCard(lastFlight(flights))}
-
-		<p class="section-label">Échéances</p>
-		<div class="chips">
-			${CURRENCIES.map((c) => `<span class="chip"><span class="dot"></span>${c}</span>`).join('')}
-		</div>
 
 		<p class="section-label">Totaux carrière</p>
 		<div class="stat-grid">

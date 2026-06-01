@@ -7,6 +7,7 @@ import * as dashboard from './views/dashboard.js';
 import * as logbook from './views/logbook.js';
 import * as addFlight from './views/add-flight.js';
 import * as flight from './views/flight.js';
+import * as echeances from './views/echeances.js';
 import * as recaps from './views/recaps.js';
 import * as settings from './views/settings.js';
 
@@ -20,6 +21,7 @@ const routes = {
 	'#/logbook': logbook,
 	'#/add': addFlight,
 	'#/flight': flight,
+	'#/echeances': echeances,
 	'#/recaps': recaps,
 	'#/settings': settings
 };

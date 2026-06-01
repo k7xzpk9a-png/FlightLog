@@ -3,6 +3,7 @@
 export const TABS = [
 	{ path: '#/', label: 'Accueil', icon: '🏠' },
 	{ path: '#/logbook', label: 'Carnet', icon: '📒' },
+	{ path: '#/echeances', label: 'Échéances', icon: '⏰' },
 	{ path: '#/recaps', label: 'Bilans', icon: '📊' },
 	{ path: '#/settings', label: 'Réglages', icon: '⚙️' }
 ];
