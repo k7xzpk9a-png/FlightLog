@@ -1,13 +1,6 @@
 // Bilans — totals, monthly trend, and per-machine breakdown, all from stored data.
 import { getVisibleFlights, getPilotOnly, setPilotOnly } from '../state.js';
-import {
-	computeTotals,
-	computeByMachine,
-	computeMonthly,
-	filterByPeriod,
-	flightTotalHours,
-	fmtHours
-} from '../model.js';
+import { computeTotals, computeByMachine, computeTrend, filterByPeriod, fmtHours } from '../model.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -28,7 +21,6 @@ function statsHTML(flights) {
 		['Jour', fmtHours(t.hoursDay)],
 		['Nuit', fmtHours(t.hoursNight)],
 		['IFR', fmtHours(t.hoursIFR)],
-		['Atterrissages', t.landings],
 		['Vols', t.vols]
 	];
 	if (t.simus) cells.push(['Simu', t.simus]);
@@ -40,16 +32,25 @@ function statsHTML(flights) {
 		.join('');
 }
 
-// Tiny dependency-free bar chart of monthly hours (12 months).
+// Heading for the trend chart, per selected period.
+const TREND_LABEL = {
+	mois: 'Activité (ce mois, par jour)',
+	annee: 'Activité (cette année, par mois)',
+	'12dm': 'Activité (12 derniers mois)',
+	carriere: 'Activité (par année)'
+};
+
+// Tiny dependency-free bar chart, windowed to the selected period.
 function trendHTML(flights) {
-	const data = computeMonthly(flights, 12);
+	const data = computeTrend(flights, period);
+	if (!data.length) return `<div class="card"><div class="empty">Aucune donnée.</div></div>`;
 	const max = Math.max(1, ...data.map((d) => d.hours));
 	const bars = data
 		.map((d) => {
 			const h = Math.round((d.hours / max) * 100);
-			return `<div class="bar" title="${d.label} : ${fmtHours(d.hours)}">
+			return `<div class="bar" title="${esc(d.label)} : ${fmtHours(d.hours)}">
 				<div class="bar__fill" style="height:${h}%"></div>
-				<div class="bar__lbl">${esc(d.label[0])}</div>
+				<div class="bar__lbl">${esc(d.tick)}</div>
 			</div>`;
 		})
 		.join('');
@@ -80,7 +81,7 @@ function bodyHTML() {
 	const flights = filterByPeriod(visible, period);
 	return `
 		<div class="stat-grid">${statsHTML(flights)}</div>
-		<p class="section-label">Activité (12 derniers mois)</p>
+		<p class="section-label">${TREND_LABEL[period] || 'Activité'}</p>
 		${trendHTML(visible)}
 		<p class="section-label">Par machine</p>
 		${byMachineHTML(flights)}`;

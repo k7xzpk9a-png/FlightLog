@@ -17,8 +17,6 @@ const numField = (f) =>
 
 const mainHours = HOUR_FIELDS.filter((f) => f.key === 'hoursDay' || f.key === 'hoursNight');
 const moreHours = HOUR_FIELDS.filter((f) => !mainHours.includes(f));
-const mainCounts = COUNT_FIELDS.filter((f) => f.key === 'landings');
-const moreCounts = COUNT_FIELDS.filter((f) => !mainCounts.includes(f));
 
 const rows = (fields) => {
 	let html = '';
@@ -92,11 +90,10 @@ export function render() {
 			<div style="margin-top:12px">${rows(moreHours)}</div>
 		</details>
 
-		<p class="section-label">Posers &amp; approches</p>
-		${rows(mainCounts)}
+		<p class="section-label">Approches</p>
 		<details class="card" style="padding:12px 16px">
-			<summary class="view__subtitle">Approches</summary>
-			<div style="margin-top:12px">${rows(moreCounts)}</div>
+			<summary class="view__subtitle">ILS, VOR, NDB, GCA/PAR, POA</summary>
+			<div style="margin-top:12px">${rows(COUNT_FIELDS)}</div>
 		</details>
 
 		<div class="field">

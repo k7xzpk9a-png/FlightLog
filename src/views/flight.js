@@ -56,7 +56,7 @@ export function render() {
 		</div>
 
 		${hours.length ? `<p class="section-label">Heures</p><div class="chips">${hours.join('')}</div>` : ''}
-		${counts.length ? `<p class="section-label">Posers &amp; approches</p><div class="chips">${counts.join('')}</div>` : ''}
+		${counts.length ? `<p class="section-label">Approches</p><div class="chips">${counts.join('')}</div>` : ''}
 		${events.length ? `<p class="section-label">Activités</p><div class="chips">${events.join('')}</div>` : ''}
 		${f.notes ? `<p class="section-label">Remarques</p><div class="card">${esc(f.notes)}</div>` : ''}
 

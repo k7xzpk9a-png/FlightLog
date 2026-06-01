@@ -17,9 +17,9 @@ export const HOUR_FIELDS = [
 	{ key: 'hoursMENight', label: 'ME Nuit' }
 ];
 
-// Counters (integers): landings + instrument approaches.
+// Counters (integers): instrument approaches. (Landings aren't tracked —
+// helicopter pilots don't log them, and the source column was empty/garbage.)
 export const COUNT_FIELDS = [
-	{ key: 'landings', label: 'Atterrissages' },
 	{ key: 'apprILS', label: 'ILS' },
 	{ key: 'apprVOR', label: 'VOR' },
 	{ key: 'apprNDB', label: 'NDB' },
@@ -70,7 +70,7 @@ export function flightTotalHours(f) {
 
 /** Aggregate totals across a list of flights. */
 export function computeTotals(flights) {
-	const t = { count: 0, vols: 0, simus: 0, hoursDay: 0, hoursNight: 0, hoursIFR: 0, total: 0, landings: 0 };
+	const t = { count: 0, vols: 0, simus: 0, hoursDay: 0, hoursNight: 0, hoursIFR: 0, total: 0 };
 	for (const f of flights) {
 		t.count++;
 		if (f.kind === 'simu') t.simus++;
@@ -78,7 +78,6 @@ export function computeTotals(flights) {
 		t.hoursDay += num(f.hoursDay);
 		t.hoursNight += num(f.hoursNight);
 		t.hoursIFR += num(f.hoursIFR);
-		t.landings += num(f.landings);
 	}
 	t.total = t.hoursDay + t.hoursNight;
 	return t;
@@ -111,6 +110,64 @@ export function computeMonthly(flights, months = 12, today = new Date()) {
 		if (i != null) out[i].hours += flightTotalHours(f);
 	}
 	return out;
+}
+
+/**
+ * Bars for the Bilans trend chart, adapted to the selected period so the chart
+ * covers the SAME window as the stats above it:
+ *   mois     → one bar per day of the current month
+ *   annee    → 12 bars, Jan→Dec of the current year
+ *   12dm     → rolling last 12 months (oldest→newest)
+ *   carriere → one bar per calendar year, first→last flight
+ * Each bar: { label (full, for tooltip), tick (short axis label), hours }.
+ */
+export function computeTrend(flights, period, today = new Date()) {
+	const fill = (out, idx, sliceFn) => {
+		for (const f of flights) {
+			const i = idx.get(sliceFn(f.date || ''));
+			if (i != null) out[i].hours += flightTotalHours(f);
+		}
+		return out;
+	};
+
+	if (period === 'mois') {
+		const y = today.getFullYear();
+		const m = today.getMonth();
+		const days = new Date(y, m + 1, 0).getDate();
+		const prefix = `${y}-${String(m + 1).padStart(2, '0')}`;
+		const out = [];
+		for (let d = 1; d <= days; d++) {
+			// Label only every 5th day (+ the 1st) to avoid crowding ~30 bars.
+			out.push({ label: `${d}`, tick: d === 1 || d % 5 === 0 ? `${d}` : '', hours: 0 });
+		}
+		const idx = new Map(out.map((o, i) => [String(i + 1).padStart(2, '0'), i]));
+		return fill(out, idx, (date) => (date.startsWith(prefix) ? date.slice(8, 10) : ''));
+	}
+
+	if (period === 'annee') {
+		const y = today.getFullYear();
+		const out = [];
+		for (let m = 0; m < 12; m++) {
+			const label = new Date(y, m, 1).toLocaleDateString('fr-FR', { month: 'short' });
+			out.push({ label, tick: label[0], hours: 0 });
+		}
+		const idx = new Map(out.map((o, i) => [`${y}-${String(i + 1).padStart(2, '0')}`, i]));
+		return fill(out, idx, (date) => date.slice(0, 7));
+	}
+
+	if (period === 'carriere') {
+		const years = flights.map((f) => (f.date || '').slice(0, 4)).filter(Boolean).map(Number);
+		if (!years.length) return [];
+		const min = Math.min(...years);
+		const max = Math.max(...years);
+		const out = [];
+		for (let yr = min; yr <= max; yr++) out.push({ label: `${yr}`, tick: `'${String(yr).slice(2)}`, hours: 0 });
+		const idx = new Map(out.map((o, i) => [String(min + i), i]));
+		return fill(out, idx, (date) => date.slice(0, 4));
+	}
+
+	// '12dm' (default): rolling last 12 months.
+	return computeMonthly(flights, 12, today).map((o) => ({ label: o.label, tick: o.label[0], hours: o.hours }));
 }
 
 /** Filter flights by period key: 'mois' | 'annee' | '12dm' | 'carriere'. */

@@ -165,7 +165,6 @@ for (const rn of rowNums) {
 		hoursIFR: hours(r.N) + hours(r.O),
 		hoursMEDay: pickHours(r, 'P', 'AU'),
 		hoursMENight: pickHours(r, 'Q', 'AV'),
-		landings: numv(r.J),
 		apprILS: numv(r.S) + numv(r.AX),
 		apprVOR: numv(r.T) + numv(r.AY),
 		apprNDB: numv(r.U) + numv(r.AZ),
