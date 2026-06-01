@@ -2,7 +2,7 @@
 import { getVisibleFlights } from '../state.js';
 import { computeTotals, lastFlight, flightTotalHours, fmtHours, fmtDate } from '../model.js';
 
-const CURRENCIES = ['VAV', 'IFR', 'Sil', 'CAG', 'CAM', 'Treuil'];
+const CURRENCIES = ['VAV', 'IFR', 'Sil', 'Treuil'];
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -54,6 +54,7 @@ export function render() {
 			<div class="stat"><div class="stat__value">${fmtHours(t.total)}</div><div class="stat__label">Heures totales</div></div>
 			<div class="stat"><div class="stat__value">${fmtHours(t.hoursDay)}</div><div class="stat__label">Jour</div></div>
 			<div class="stat"><div class="stat__value">${fmtHours(t.hoursNight)}</div><div class="stat__label">Nuit</div></div>
+			<div class="stat"><div class="stat__value">${fmtHours(t.hoursIFR)}</div><div class="stat__label">IFR</div></div>
 			<div class="stat"><div class="stat__value">${t.vols}</div><div class="stat__label">Vols</div></div>
 		</div>
 	</section>`;

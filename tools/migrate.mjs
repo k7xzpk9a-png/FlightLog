@@ -160,9 +160,9 @@ for (const rn of rowNums) {
 		hoursDay,
 		hoursNight,
 		hoursSil: pickHours(r, 'M', 'AR'),
-		hoursIFR: hours(r.AS),
-		hoursCAG: hours(r.N),
-		hoursCAM: hours(r.O),
+		// IFR (instrument/VSV) = CAG (N) + CAM (O). The source "IFR" column AS
+		// held only 3 stray date serials, so it's ignored.
+		hoursIFR: hours(r.N) + hours(r.O),
 		hoursMEDay: pickHours(r, 'P', 'AU'),
 		hoursMENight: pickHours(r, 'Q', 'AV'),
 		landings: numv(r.J),

@@ -5,13 +5,14 @@
 // Hour fields. `total` (Jour + Nuit) is the only one summed for career totals;
 // the rest are overlapping categories logged separately.
 // (Mapping to the source xlsx columns lives in tools/migrate.mjs.)
+// `hoursIFR` is the total instrument time (VSV). In the source xlsx it was
+// logged across two columns, CAG (général) + CAM (militaire); migration sums
+// them into this single field. (The source "IFR" column AS was empty/garbage.)
 export const HOUR_FIELDS = [
 	{ key: 'hoursDay', label: 'Jour' },
 	{ key: 'hoursNight', label: 'Nuit' },
 	{ key: 'hoursSil', label: 'Sil' },
 	{ key: 'hoursIFR', label: 'IFR' },
-	{ key: 'hoursCAG', label: 'CAG' },
-	{ key: 'hoursCAM', label: 'CAM' },
 	{ key: 'hoursMEDay', label: 'ME Jour' },
 	{ key: 'hoursMENight', label: 'ME Nuit' }
 ];

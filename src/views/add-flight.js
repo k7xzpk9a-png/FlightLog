@@ -88,7 +88,7 @@ export function render() {
 		<p class="section-label">Heures</p>
 		${rows(mainHours)}
 		<details class="card" style="padding:12px 16px">
-			<summary class="view__subtitle">Autres heures (Sil, IFR, CAG, CAM, ME…)</summary>
+			<summary class="view__subtitle">Autres heures (Sil, IFR, ME…)</summary>
 			<div style="margin-top:12px">${rows(moreHours)}</div>
 		</details>
 
