@@ -5,7 +5,7 @@
 //   - Other GETs: cache-first, then network, caching successful responses.
 //
 // Bump CACHE_VERSION whenever shell files change to retire the old cache.
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = 'carnet-' + CACHE_VERSION;
 
 // Relative to the service worker scope, so this works at any GitHub Pages subpath.
@@ -25,6 +25,7 @@ const SHELL = [
 	'./src/views/logbook.js',
 	'./src/views/add-flight.js',
 	'./src/views/flight.js',
+	'./src/views/echeances.js',
 	'./src/views/recaps.js',
 	'./src/views/settings.js',
 	'./assets/icons/icon-192.png',
