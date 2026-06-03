@@ -232,7 +232,9 @@ export const ECHEANCES = [
 	{ id: 'cur-sil', family: 'currency', kind: 'auto', label: 'Sil', field: 'hoursSil', validityDays: 92, alertDays: 31 },
 	{ id: 'cur-vi', family: 'currency', kind: 'auto', label: 'VI (IFR)', field: 'hoursIFR', validityDays: 92, alertDays: 31 },
 	{ id: 'test-vav', family: 'test', kind: 'manual', label: 'VAV', validityDays: 366, alertDays: 31 },
-	{ id: 'test-pu', family: 'test', kind: 'manual', label: 'PU', validityDays: 182, alertDays: 31 },
+	// PU is machine-specific: one reference date per machine type flown. The view
+	// expands this into one row per machine (store key `test-pu::<machine>`).
+	{ id: 'test-pu', family: 'test', kind: 'manual', label: 'PU', validityDays: 182, alertDays: 31, perMachine: true },
 	{ id: 'test-sil', family: 'test', kind: 'manual', label: 'SIL', validityDays: 366, alertDays: 31 },
 	{ id: 'test-vi', family: 'test', kind: 'manual', label: 'VI', validityDays: 366, alertDays: 31 },
 	{ id: 'test-ifr', family: 'test', kind: 'manual', label: 'IFR', validityDays: 60, alertDays: 31 },
@@ -240,6 +242,15 @@ export const ECHEANCES = [
 	{ id: 'med-cempn', family: 'medical', kind: 'manual', label: 'CEMPN', validityDays: 730, alertDays: 120 },
 	{ id: 'med-vupn', family: 'medical', kind: 'manual', label: 'VUPN', validityDays: 182, alertDays: 60 }
 ];
+
+/** Distinct machine types flown as pilot, sorted — used for per-machine échéances (PU). */
+export function machinesFlown(flights) {
+	const set = new Set();
+	for (const f of flights) {
+		if (isPilotFlight(f) && f.machineType) set.add(f.machineType);
+	}
+	return [...set].sort((a, b) => a.localeCompare(b, 'fr'));
+}
 
 /** ISO date of the most recent flight with hours logged in `field`, else ''. */
 export function lastFlightDateForField(flights, field) {
@@ -263,10 +274,12 @@ function daysBetween(aIso, bIso) {
 /**
  * Status of one échéance.
  * @param store map of manual reference dates keyed by échéance id.
+ * @param key  store key for manual items (defaults to def.id; per-machine items
+ *             pass `test-pu::<machine>`).
  * @returns {{refDate:string, expiry:string, daysLeft:number, status:'ok'|'alert'|'expired'|'none'}}
  */
-export function computeEcheance(def, flights, store, today = new Date()) {
-	const refDate = def.kind === 'auto' ? lastFlightDateForField(flights, def.field) : (store?.[def.id] || '');
+export function computeEcheance(def, flights, store, today = new Date(), key = def.id) {
+	const refDate = def.kind === 'auto' ? lastFlightDateForField(flights, def.field) : (store?.[key] || '');
 	if (!refDate) return { refDate: '', expiry: '', daysLeft: NaN, status: 'none' };
 	const expiry = addDays(refDate, def.validityDays);
 	const daysLeft = daysBetween(today.toISOString().slice(0, 10), expiry);
