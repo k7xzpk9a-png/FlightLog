@@ -125,7 +125,11 @@ export function computeTrend(flights, period, today = new Date()) {
 	const fill = (out, idx, sliceFn) => {
 		for (const f of flights) {
 			const i = idx.get(sliceFn(f.date || ''));
-			if (i != null) out[i].hours += flightTotalHours(f);
+			if (i != null) {
+				out[i].hours += flightTotalHours(f);
+				out[i].hoursDay += num(f.hoursDay);
+				out[i].hoursNight += num(f.hoursNight);
+			}
 		}
 		return out;
 	};
@@ -138,7 +142,7 @@ export function computeTrend(flights, period, today = new Date()) {
 		const out = [];
 		for (let d = 1; d <= days; d++) {
 			// Label only every 5th day (+ the 1st) to avoid crowding ~30 bars.
-			out.push({ label: `${d}`, tick: d === 1 || d % 5 === 0 ? `${d}` : '', hours: 0 });
+			out.push({ label: `${d}`, tick: d === 1 || d % 5 === 0 ? `${d}` : '', hours: 0, hoursDay: 0, hoursNight: 0 });
 		}
 		const idx = new Map(out.map((o, i) => [String(i + 1).padStart(2, '0'), i]));
 		return fill(out, idx, (date) => (date.startsWith(prefix) ? date.slice(8, 10) : ''));
@@ -149,7 +153,7 @@ export function computeTrend(flights, period, today = new Date()) {
 		const out = [];
 		for (let m = 0; m < 12; m++) {
 			const label = new Date(y, m, 1).toLocaleDateString('fr-FR', { month: 'short' });
-			out.push({ label, tick: label[0], hours: 0 });
+			out.push({ label, tick: label[0], hours: 0, hoursDay: 0, hoursNight: 0 });
 		}
 		const idx = new Map(out.map((o, i) => [`${y}-${String(i + 1).padStart(2, '0')}`, i]));
 		return fill(out, idx, (date) => date.slice(0, 7));
@@ -161,13 +165,22 @@ export function computeTrend(flights, period, today = new Date()) {
 		const min = Math.min(...years);
 		const max = Math.max(...years);
 		const out = [];
-		for (let yr = min; yr <= max; yr++) out.push({ label: `${yr}`, tick: `'${String(yr).slice(2)}`, hours: 0 });
+		for (let yr = min; yr <= max; yr++)
+			out.push({ label: `${yr}`, tick: `'${String(yr).slice(2)}`, hours: 0, hoursDay: 0, hoursNight: 0 });
 		const idx = new Map(out.map((o, i) => [String(min + i), i]));
 		return fill(out, idx, (date) => date.slice(0, 4));
 	}
 
 	// '12dm' (default): rolling last 12 months.
-	return computeMonthly(flights, 12, today).map((o) => ({ label: o.label, tick: o.label[0], hours: o.hours }));
+	const out = [];
+	for (let i = 11; i >= 0; i--) {
+		const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+		const ym = d.toISOString().slice(0, 7);
+		out.push({ ym, label: d.toLocaleDateString('fr-FR', { month: 'short' }), hours: 0, hoursDay: 0, hoursNight: 0 });
+	}
+	const idx = new Map(out.map((o, i) => [o.ym, i]));
+	fill(out, idx, (date) => (date || '').slice(0, 7));
+	return out.map((o) => ({ label: o.label, tick: o.label[0], hours: o.hours, hoursDay: o.hoursDay, hoursNight: o.hoursNight }));
 }
 
 /** Filter flights by period key: 'mois' | 'annee' | '12dm' | 'carriere'. */

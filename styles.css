@@ -227,6 +227,19 @@ body.is-subpage .app {
 	font-size: 0.6rem;
 	color: var(--muted);
 }
+.bar__split {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	line-height: 1.1;
+	font-size: 0.55rem;
+}
+.bar__day {
+	color: #fff;
+}
+.bar__night {
+	color: #e5484d;
+}
 
 /* ---- Horizontal meter (per-machine) ---- */
 .meter {

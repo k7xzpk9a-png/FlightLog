@@ -49,6 +49,10 @@ function trendHTML(flights) {
 		.map((d) => {
 			const h = Math.round((d.hours / max) * 100);
 			return `<div class="bar" title="${esc(d.label)} : ${fmtHours(d.hours)}">
+				<div class="bar__split">
+					${d.hoursDay ? `<span class="bar__day">${fmtHours(d.hoursDay)}</span>` : ''}
+					${d.hoursNight ? `<span class="bar__night">${fmtHours(d.hoursNight)}</span>` : ''}
+				</div>
 				<div class="bar__fill" style="height:${h}%"></div>
 				<div class="bar__lbl">${esc(d.tick)}</div>
 			</div>`;
